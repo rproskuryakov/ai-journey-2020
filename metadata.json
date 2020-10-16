@@ -1,0 +1,4 @@
+{
+   "image": "odsai/python-gpu",
+   "entrypoint": "python predict.py"
+}
