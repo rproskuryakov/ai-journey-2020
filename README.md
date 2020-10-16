@@ -1,5 +1,5 @@
 # ai-journey-2020
-This repo contains solution to [AI Journey 2020](https://github.com/sberbank-ai/digital_peter_aij2020) competition.
+This repo contains solution to [AI Journey 2020](https://github.com/sberbank-ai/digital_peter_aij2020/blob/master/README.en.md) competition.
 
 # Ideas
 1. Transfer learning (ResNet-encoder, BERT-decoder)
