@@ -10,12 +10,13 @@ from src.trainer import TaskTrainer
 
 if __name__ == "__main__":
     if torch.cuda.is_available():
-        device = torch.device("cuda")
+        device = torch.device("cuda:0")
+        # torch.cuda.set_device('0')
     else:
         device = "cpu"
 
     dataframe = pd.read_csv("data/interim/texts.csv")
-    filenames = dataframe["filename"]
+    filenames = dataframe["filename"].to_list()
     train_filenames, test_filenames = train_test_split(filenames, test_size=0.15, shuffle=True, random_state=2020)
     MAX_LEN = dataframe["text"].str.len().max()
     letters = list(reduce(lambda x, y: set(x) | set(y), dataframe["text"].to_list(), set()))
@@ -31,8 +32,8 @@ if __name__ == "__main__":
                               letters=letters,
                               max_len=MAX_LEN)
 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True)
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=32, shuffle=True)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=2, shuffle=True)
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=2)
 
     network = BaselineNetwork(n_letters=len(letters))
 

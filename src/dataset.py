@@ -29,8 +29,14 @@ class PetrDataset(Dataset):
         # image processing
         image = Image.open(self.image_folder / filename.with_suffix(".jpg"))
         image = PetrDataset.process_image(image)
-
-        return torch.from_numpy(image), torch.Tensor(padded_text), torch.Tensor([255]), len(encoded_text)
+        input_length = torch.IntTensor([255])
+        # input_length =
+        return (
+            torch.from_numpy(image.astype(dtype='float32')),
+            torch.Tensor(padded_text),
+            input_length.squeeze(),
+            len(encoded_text),
+        )
 
     def text_to_label(self, text):
         return [self.letters.index(char) for char in text]
@@ -61,10 +67,12 @@ class PetrDataset(Dataset):
 
         if w > 1024 or h > 128:
             dim = (128, 1024)
-            img_array = Image.fromarray(img_array).resize(dim)
+            img_array = np.array(Image.fromarray(img_array).resize(dim)).reshape((128, 1024, 3))
 
         img_array = 255 - img_array
 
         img_array = img_array / 255
+
+        img_array = img_array.reshape(3, 128, 1024)
 
         return np.array(img_array)
