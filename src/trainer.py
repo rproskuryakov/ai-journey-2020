@@ -2,7 +2,6 @@ import logging
 
 import torch
 import torch.nn as nn
-
 from torch.utils.data import DataLoader
 
 logger = logging.getLogger(__name__)
@@ -37,8 +36,9 @@ class TaskTrainer:
     def fit(self):
         for n in range(self.n_epochs):
             logger.warning(f"Fitting {n} epoch...")
-            self.training_step()
-            self.validation_step()
+            out_train = self.training_step()
+            out_val = self.validation_step()
+
 
     def training_step(self):
         train_loss = 0
