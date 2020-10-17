@@ -1,20 +1,28 @@
 from functools import reduce
+
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import torch.nn as nn
 import torch.utils.data
+from sklearn.model_selection import train_test_split
 from torch.optim import AdamW
 
-from src.dataset import PetrDataset
 from src.baseline_model import BaselineNetwork
+from src.dataset import PetrDataset
 from src.trainer import TaskTrainer
-from src.utils import EarlyStopping, SaveCheckpoints
+from src.utils import (
+    EarlyStopping,
+    SaveCheckpoints,
+)
+from src.metrics import (
+    CharacterErrorRate,
+    WordErrorRate,
+    StringAccuracy,
+)
 
 
 if __name__ == "__main__":
     if torch.cuda.is_available():
         device = torch.device("cuda:0")
-        # torch.cuda.set_device('0')
     else:
         device = "cpu"
 
@@ -52,6 +60,14 @@ if __name__ == "__main__":
         device=device,
         n_epochs=20,
         scheduler=scheduler,
-        callbacks=[EarlyStopping(patience=20, min_delta=0.5), SaveCheckpoints()]
+        callbacks=[
+            EarlyStopping(patience=20, min_delta=0.5),
+            SaveCheckpoints(),
+        ],
+        metrics=[
+            WordErrorRate(),
+            CharacterErrorRate(),
+            StringAccuracy(),
+        ]
     )
     trainer.fit()
