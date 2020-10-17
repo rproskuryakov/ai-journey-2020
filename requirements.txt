@@ -99,3 +99,5 @@ widgetsnbextension==3.5.1
 wrapt==1.12.1
 editdistance==0.5.3
 git+https://github.com/parlance/ctcdecode@1.0.2
+dvc==1.8.4
+boto3==1.15.18
