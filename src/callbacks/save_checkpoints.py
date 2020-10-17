@@ -30,7 +30,7 @@ class SaveCheckpoints(BaseCallback):
         torch.save(self.model.cpu().state_dict(), path)
         self.model.cuda()
 
-    def __call__(self, n_epoch: int, metric: Optional[Union[int, torch.Tensor]] = None) -> None:
+    def __call__(self, n_epoch: int, metric: Optional[Union[float, torch.Tensor]] = None) -> None:
         if not self.only_best:
             name = f'model_epoch_{n_epoch}.pth'
             self._save_checkpoint(name)

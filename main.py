@@ -10,6 +10,7 @@ from src.baseline_model import BaselineNetwork
 from src.callbacks.early_stopping import EarlyStopping
 from src.callbacks.save_checkpoints import SaveCheckpoints
 from src.dataset import PetrDataset
+from src.decoders.ctc_decoder import CTCDecoder
 from src.metrics import CharacterErrorRate
 from src.metrics import StringAccuracy
 from src.metrics import WordErrorRate
@@ -26,6 +27,7 @@ if __name__ == "__main__":
     train_filenames, test_filenames = train_test_split(filenames, test_size=0.15, shuffle=True, random_state=2020)
     MAX_LEN = dataframe["text"].str.len().max()
     letters = list(reduce(lambda x, y: set(x) | set(y), dataframe["text"].to_list(), set()))
+
     train_dataset = PetrDataset(filenames=train_filenames,
                                 image_folder="data/train/images",
                                 text_folder="data/train/words",
@@ -57,12 +59,14 @@ if __name__ == "__main__":
         scheduler=scheduler,
         callbacks=[
             EarlyStopping(patience=20, min_delta=1.e-5),
-            SaveCheckpoints(network, only_best=True),
+            SaveCheckpoints(network, only_best=True, folder='checkpoint_torch/v1/'),
         ],
         metrics=[
             WordErrorRate(),
             CharacterErrorRate(),
             StringAccuracy(),
-        ]
+        ],
+        letters=letters,
+        decoder=CTCDecoder()
     )
     trainer.fit()

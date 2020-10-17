@@ -18,8 +18,8 @@ class BaselineNetwork(nn.Module):
         self.batch_norm6 = nn.BatchNorm2d(512)
         self.pool_6 = nn.MaxPool2d(kernel_size=(4, 1))
         self.conv_7 = nn.Conv2d(512, 512, kernel_size=(2, 2))
-        self.blstm_1 = nn.GRU(255, 128, bidirectional=True, dropout=0.2)
-        self.blstm_2 = nn.GRU(256, 128, bidirectional=True, dropout=0.2)
+        self.blstm_1 = nn.GRU(255, 128, bidirectional=True, dropout=0.2, batch_first=True)
+        self.blstm_2 = nn.GRU(256, 128, bidirectional=True, dropout=0.2, batch_first=True)
         self.dense = nn.Linear(256, n_letters + 1)
 
     def forward(self, x):

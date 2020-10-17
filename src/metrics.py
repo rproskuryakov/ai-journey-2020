@@ -1,10 +1,12 @@
-from abc import (
-    ABC,
-    abstractmethod,
-)
+from abc import ABC
+from abc import abstractmethod
 from typing import List
 
 import editdistance
+
+CHARACTER_ERROR_RATE = "CharacterErrorRate"
+WORD_ERROR_RATE = "WordErrorRate"
+STRING_ACCURACY = "StringAccuracy"
 
 
 class StringMetric(ABC):
@@ -35,7 +37,7 @@ class CharacterErrorRate(StringMetric):
             self.numerator += editdistance.eval(pred_str, true_str)
 
     def name(self):
-        return "CharacterErrorRate"
+        return CHARACTER_ERROR_RATE
 
 
 class WordErrorRate(StringMetric):
@@ -45,7 +47,7 @@ class WordErrorRate(StringMetric):
             self.numerator += editdistance.eval(pred_str.split(), true_str.split())
 
     def name(self):
-        return "WordErrorRate"
+        return WORD_ERROR_RATE
 
 
 class StringAccuracy(StringMetric):
@@ -55,4 +57,4 @@ class StringAccuracy(StringMetric):
             self.numerator += int(true_str == pred_str)
 
     def name(self):
-        return "StringAccuracy"
+        return STRING_ACCURACY

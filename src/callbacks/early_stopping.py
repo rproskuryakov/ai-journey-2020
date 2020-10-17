@@ -25,17 +25,14 @@ class EarlyStopping(BaseCallback):
             self.is_better = lambda a, b: True
             self.step = lambda a: False
 
-    def __call__(self, metrics: Union[int, torch.Tensor]) -> bool:
+    def __call__(self, loss: float) -> bool:
         if self.best is None:
-            self.best = metrics
+            self.best = loss
             return False
 
-        if torch.isnan(metrics):
-            return True
-
-        if self.is_better(metrics, self.best):
+        if self.is_better(loss, self.best):
             self.num_bad_epochs = 0
-            self.best = metrics
+            self.best = loss
         else:
             self.num_bad_epochs += 1
 
