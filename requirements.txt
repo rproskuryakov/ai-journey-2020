@@ -98,3 +98,4 @@ Werkzeug==1.0.1
 widgetsnbextension==3.5.1
 wrapt==1.12.1
 editdistance==0.5.3
+git+https://github.com/parlance/ctcdecode@1.0.2

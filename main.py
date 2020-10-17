@@ -7,18 +7,13 @@ from sklearn.model_selection import train_test_split
 from torch.optim import AdamW
 
 from src.baseline_model import BaselineNetwork
+from src.callbacks.early_stopping import EarlyStopping
+from src.callbacks.save_checkpoints import SaveCheckpoints
 from src.dataset import PetrDataset
+from src.metrics import CharacterErrorRate
+from src.metrics import StringAccuracy
+from src.metrics import WordErrorRate
 from src.trainer import TaskTrainer
-from src.utils import (
-    EarlyStopping,
-    SaveCheckpoints,
-)
-from src.metrics import (
-    CharacterErrorRate,
-    WordErrorRate,
-    StringAccuracy,
-)
-
 
 if __name__ == "__main__":
     if torch.cuda.is_available():
@@ -61,8 +56,8 @@ if __name__ == "__main__":
         n_epochs=20,
         scheduler=scheduler,
         callbacks=[
-            EarlyStopping(patience=20, min_delta=0.5),
-            SaveCheckpoints(),
+            EarlyStopping(patience=20, min_delta=1.e-5),
+            SaveCheckpoints(network, only_best=True),
         ],
         metrics=[
             WordErrorRate(),
