@@ -48,14 +48,19 @@ if __name__ == "__main__":
     MAX_LEN = dataframe["text"].str.len().max()
     letters = ["_"] + list(reduce(lambda x, y: set(x) | set(y), dataframe["text"].to_list(), set()))
 
-    transformer = BaselineTransformer()
+    transformer = tf.Compose([
+        tf.Resize((128, 1024)),
+        tf.ToTensor(),
+        tf.Normalize(mean=[0.485, 0.456, 0.406],
+                     std=[0.229, 0.224, 0.225]),
+    ])
     train_dataset = PetrDataset(
         filenames=train_filenames,
         image_folder=INPUT_DIR / "train/images",
         text_folder=INPUT_DIR / "train/words",
         letters=letters,
         max_len=MAX_LEN,
-        transformer=transformer,
+        transformer=transformer
     )
 
     val_dataset = PetrDataset(
@@ -64,24 +69,20 @@ if __name__ == "__main__":
         text_folder=INPUT_DIR / "train/words",
         letters=letters,
         max_len=MAX_LEN,
-        transformer=transformer,
+        transformer=transformer
     )
 
-    train_dataloader = torch.utils.data.DataLoader(
-        train_dataset,
-        batch_size=BATCH_SIZE,
-        shuffle=True,
-    )
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE)
 
-    network = BaselineNetwork(n_letters=len(letters))
+    network = ResNetNetwork(n_letters=len(letters))
 
-    optimizer = AdamW(network.parameters(), lr=LEARNING_RATE)
-    scheduler = lr_scheduler.OneCycleLR(
+    optimizer = Adam(network.parameters(), lr=LEARNING_RATE)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
-        max_lr=LEARNING_RATE,
-        steps_per_epoch=len(train_dataloader),
-        epochs=N_EPOCHS,
+        mode="min",
+        patience=5,
+        factor=0.7
     )
 
     trainer = TaskTrainer(
@@ -94,8 +95,8 @@ if __name__ == "__main__":
         n_epochs=N_EPOCHS,
         scheduler=scheduler,
         callbacks=[
-            EarlyStopping(patience=20, min_delta=1.e-5),
-            SaveCheckpoints(network, only_best=True, folder=OUTPUT_DIR / 'checkpoint_torch/v1/'),
+            EarlyStopping(patience=20, min_delta=1e-5),
+            SaveCheckpoints(network, only_best=True, folder=OUTPUT_DIR / 'checkpoint_torch/v2_resnet/'),
         ],
         metrics=[
             WordErrorRate(),
@@ -103,6 +104,7 @@ if __name__ == "__main__":
             StringAccuracy(),
         ],
         letters=letters,
-        decoder=GreedyDecoder(letters=letters, blank_id=0, log_probs_input=True)
+        decoder=GreedyDecoder(letters, blank_id=0),
+        clipping_value=10
     )
     trainer.fit()

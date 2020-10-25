@@ -26,6 +26,7 @@ class TaskTrainer:
             val_dataloader: torch.utils.data.DataLoader,
             optimizer,
             letters: List[str],
+            clipping_value: float,
             device="cpu",
             n_epochs=100,
             metrics: Optional[List[StringMetric]] = None,
@@ -46,12 +47,13 @@ class TaskTrainer:
         self.callbacks = callbacks
         self.metrics = metrics
         self.decoder = decoder
+        self.clipping_value = clipping_value
         self.metric_accumulator = MetricAccumulator()
 
     def fit(self):
         for n in range(1, self.n_epochs + 1):
             logger.info(f"Fitting {n} epoch...")
-            # print(f"Fitting {n} epoch...")
+            print(f"Fitting {n} epoch...")
             self.training_step(n)
             val_loss = self.validation_step(n)
             if self.scheduler is not None:
@@ -62,7 +64,7 @@ class TaskTrainer:
         n_samples = 0
 
         logger.info("Training...")
-        # print("Training...")
+        print("Training...")
         self.net.train()
         for idx, batch in enumerate(self.train_loader):
             batch_inputs, batch_labels, batch_input_lengths, batch_label_lengths = batch
@@ -80,12 +82,13 @@ class TaskTrainer:
             )
             self.optimizer.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.net.parameters(), self.clipping_value)
             self.optimizer.step()
             train_loss += loss.detach() * batch_size
             n_samples += batch_size
 
         logger.info("Train loss: %.2f" % (train_loss / n_samples))
-        # print("Train loss: %.2f" % (train_loss / n_samples))
+        print("Train loss: %.2f" % (train_loss / n_samples))
         return train_loss / n_samples
 
     def validation_step(self, epoch):
@@ -94,7 +97,7 @@ class TaskTrainer:
         n_samples = 0
 
         logger.info("Evaluating")
-        # print("Evaluating")
+        print("Evaluating")
         self.net.eval()
 
         with torch.no_grad():
@@ -128,7 +131,7 @@ class TaskTrainer:
         cer = None
         for m in self.metrics:
             value = m.calculate()
-            # logger.warning(f'{name}: ' + '%.2f' % (m / n_samples))
+            logger.info(f'{m.name()}: %.2f' % value)
             print(f'{m.name()}: ' + '%.2f' % value)
             if m.name() == "CharacterErrorRate":
                 cer = value
@@ -142,5 +145,5 @@ class TaskTrainer:
                 callback(val_loss / n_samples)
 
         logger.info("Validation loss: %.2f" % (val_loss / n_samples))
-        # print("Validation loss: %.2f" % (val_loss / n_samples))
+        print("Validation loss: %.2f" % (val_loss / n_samples))
         return val_loss / n_samples
