@@ -13,18 +13,20 @@ This repo contains solution to [AI Journey 2020](https://github.com/sberbank-ai/
 
 ## Resources
 
-https://distill.pub/2017/ctc/
+[Sequence modeling with CTC | Distill](https://distill.pub/2017/ctc/)
 
-https://medium.com/apache-mxnet/handwriting-ocr-handwriting-recognition-and-language-modeling-with-mxnet-gluon-4c7165788c67
+[Handwriting recognition and language modeling with MXNet Gluon | Medium](https://medium.com/apache-mxnet/handwriting-ocr-handwriting-recognition-and-language-modeling-with-mxnet-gluon-4c7165788c67)
 
-https://github.com/githubharald/DeslantImg
+[Deslanting algorithm | Github](https://github.com/githubharald/DeslantImg)
 
-https://github.com/parlance/ctcdecode
+[CTC Decoder | Github](https://github.com/parlance/ctcdecode)
 
-https://github.com/githubharald/CTCWordBeamSearch
+[CTC Word Beam Search Decoding Algorithm | Github](https://github.com/githubharald/CTCWordBeamSearch)
 
-https://github.com/githubharald/SimpleHTR
+[Handwritten Text Recognition with TensorFlow | Github](https://github.com/githubharald/SimpleHTR)
 
-https://repositum.tuwien.at/retrieve/10807
+[Handwritten Text Recognition in Historical Documents](https://repositum.tuwien.at/retrieve/10807)
 
-https://arxiv.org/abs/1911.05045
+[Word Beam Search: A Connectionist Temporal Classification Decoding Algorithm](https://repositum.tuwien.at/retrieve/1835)
+
+[Trainable Spectrally Initializable Matrix Transformations in Convolutional Neural Networks | Arxiv 2019](https://arxiv.org/abs/1911.05045)
