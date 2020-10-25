@@ -4,14 +4,14 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from src.callbacks.base_callback import BaseCallback
 from src.callbacks.early_stopping import EarlyStopping
 from src.callbacks.save_checkpoints import SaveCheckpoints
 from src.decoders.base_decoder import BaseDecoder
-from src.metric_accamulator import MetricAccamulator
-from src.metrics import CHARACTER_ERROR_RATE
+from src.metric_accumulator import MetricAccumulator
 from src.metrics import StringMetric
 
 logger = logging.getLogger(__name__)
@@ -22,8 +22,8 @@ class TaskTrainer:
             self,
             network: nn.Module,
             loss: nn.CTCLoss,
-            train_dataloader: DataLoader,
-            val_dataloader: DataLoader,
+            train_dataloader: torch.utils.data.DataLoader,
+            val_dataloader: torch.utils.data.DataLoader,
             optimizer,
             letters: List[str],
             device="cpu",
@@ -35,7 +35,7 @@ class TaskTrainer:
     ):
         self.letters = letters
         self.net = network
-        self.loss = loss
+        self.loss = loss.to(device)
         self.train_loader = train_dataloader
         self.val_loader = val_dataloader
         self.device = device
@@ -46,19 +46,23 @@ class TaskTrainer:
         self.callbacks = callbacks
         self.metrics = metrics
         self.decoder = decoder
-        self.metric_accamulator = MetricAccamulator()
+        self.metric_accumulator = MetricAccumulator()
 
     def fit(self):
-        for n in range(self.n_epochs):
-            logger.warning(f"Fitting {n} epoch...")
+        for n in range(1, self.n_epochs + 1):
+            logger.info(f"Fitting {n} epoch...")
+            # print(f"Fitting {n} epoch...")
             self.training_step(n)
-            self.validation_step(n)
+            val_loss = self.validation_step(n)
+            if self.scheduler is not None:
+                self.scheduler.step(val_loss)
 
     def training_step(self, epoch):
         train_loss = 0
         n_samples = 0
 
-        logger.warning("Training")
+        logger.info("Training...")
+        # print("Training...")
         self.net.train()
         for idx, batch in enumerate(self.train_loader):
             batch_inputs, batch_labels, batch_input_lengths, batch_label_lengths = batch
@@ -67,7 +71,7 @@ class TaskTrainer:
             batch_labels = batch_labels.to(self.device)
             batch_input_lengths = batch_input_lengths.to(self.device)
             batch_label_lengths = batch_label_lengths.to(self.device)
-            out = torch.reshape(self.net(batch_inputs), (512, 2, 77))
+            out = self.net(batch_inputs)
             loss = self.loss(
                 out,
                 batch_labels,
@@ -80,7 +84,8 @@ class TaskTrainer:
             train_loss += loss.detach() * batch_size
             n_samples += batch_size
 
-        logger.warning("Train loss: %.2f" % (train_loss / n_samples))
+        logger.info("Train loss: %.2f" % (train_loss / n_samples))
+        # print("Train loss: %.2f" % (train_loss / n_samples))
         return train_loss / n_samples
 
     def validation_step(self, epoch):
@@ -88,7 +93,8 @@ class TaskTrainer:
         val_loss = 0
         n_samples = 0
 
-        logger.warning("Evaluating")
+        logger.info("Evaluating")
+        # print("Evaluating")
         self.net.eval()
 
         with torch.no_grad():
@@ -99,17 +105,17 @@ class TaskTrainer:
                 batch_labels = batch_labels.to(self.device)
                 batch_input_lengths = batch_input_lengths.to(self.device)
                 batch_label_lengths = batch_label_lengths.to(self.device)
-                out = torch.reshape(self.net(batch_inputs), (512, 2, 77))
+                out = self.net(batch_inputs)
+                # OUT_SHAPE: (T, N, C)
                 out_val = None
                 if self.decoder is not None:
-                    out_val = self.decoder(out, self.letters)
-                    batch_labels_decode = self.decoder.decode_labels(batch_labels, self.letters)
-                    out_labels = self.decoder.decode_labels(out_val, self.letters)
+                    out_val = self.decoder(out)
+                    pred_texts, true_texts = self.decoder.decode(out_val, batch_labels, batch_label_lengths)
                 for metric in self.metrics:
                     if out_val is None:
                         raise ValueError('out_val must be init')
-                    m = metric(pred_strings=out_labels, ground_strings=batch_labels_decode)
-                    self.metric_accamulator.accumulate(m * batch_size, metric.name)
+                    metric(pred_strings=pred_texts, ground_strings=true_texts)
+
                 loss = self.loss(
                     out,
                     batch_labels,
@@ -120,10 +126,12 @@ class TaskTrainer:
                 n_samples += batch_size
 
         cer = None
-        for name, m in self.metric_accamulator.name_to_metric.items():
-            logger.warning(f'{name}: ' + '%.2f' % (m / n_samples))
-            if name == CHARACTER_ERROR_RATE:
-                cer = m / n_samples
+        for m in self.metrics:
+            value = m.calculate()
+            # logger.warning(f'{name}: ' + '%.2f' % (m / n_samples))
+            print(f'{m.name()}: ' + '%.2f' % value)
+            if m.name() == "CharacterErrorRate":
+                cer = value
 
         for callback in self.callbacks:
             if isinstance(callback, SaveCheckpoints) and callback.only_best:
@@ -133,8 +141,6 @@ class TaskTrainer:
             if isinstance(callback, EarlyStopping):
                 callback(val_loss / n_samples)
 
-        if self.scheduler is not None:
-            self.scheduler.step()
-
-        logger.warning("Validation loss: %.2f" % (val_loss / n_samples))
+        logger.info("Validation loss: %.2f" % (val_loss / n_samples))
+        # print("Validation loss: %.2f" % (val_loss / n_samples))
         return val_loss / n_samples

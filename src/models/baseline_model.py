@@ -3,6 +3,7 @@ import torch.nn.functional as F
 
 
 class BaselineNetwork(nn.Module):
+
     def __init__(self, n_letters):
         super(BaselineNetwork, self).__init__()
         self.conv_1 = nn.Conv2d(3, 64, kernel_size=(3, 3), padding=(1, 1))
@@ -18,9 +19,11 @@ class BaselineNetwork(nn.Module):
         self.batch_norm6 = nn.BatchNorm2d(512)
         self.pool_6 = nn.MaxPool2d(kernel_size=(4, 1))
         self.conv_7 = nn.Conv2d(512, 512, kernel_size=(2, 2))
-        self.blstm_1 = nn.GRU(255, 128, bidirectional=True, dropout=0.2, batch_first=True)
-        self.blstm_2 = nn.GRU(256, 128, bidirectional=True, dropout=0.2, batch_first=True)
-        self.dense = nn.Linear(256, n_letters + 1)
+        self.blstm_1 = nn.GRU(512, 128, bidirectional=True, batch_first=True)
+        self.dropout_1 = nn.Dropout(0.2)
+        self.blstm_2 = nn.GRU(256, 128, bidirectional=True, batch_first=True)
+        self.dropout_2 = nn.Dropout(0.2)
+        self.dense = nn.Linear(256, n_letters)
 
     def forward(self, x):
         x = self.conv_1(x)
@@ -39,7 +42,11 @@ class BaselineNetwork(nn.Module):
         x = F.pad(x, [0, 0, 3, 0])
         x = self.pool_6(x)
         x = self.conv_7(x)
-        x = x.squeeze()
+        x = x.squeeze(dim=2).permute(0, 2, 1)
         x, _ = self.blstm_1(x)
+        x = self.dropout_1(x)
         x, _ = self.blstm_2(x)
-        return F.log_softmax(self.dense(x))
+        x = self.dropout_2(x)
+        x = self.dense(x)
+        x = F.log_softmax(x, dim=2)
+        return x.permute(1, 0, 2)

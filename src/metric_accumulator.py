@@ -2,7 +2,7 @@ import copy
 from typing import Dict
 
 
-class MetricAccamulator:
+class MetricAccumulator:
     def __init__(self):
         self._name_to_metric = {}
 

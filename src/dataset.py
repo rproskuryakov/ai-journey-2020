@@ -6,46 +6,11 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 
-class PetrDataset(Dataset):
-    def __init__(self, filenames, image_folder, text_folder, letters, max_len=0):
-        self.filenames = filenames
-        self.image_folder = Path(image_folder)
-        self.text_folder = Path(text_folder)
-        self.max_len = max_len
-        self.letters = letters
+class BaselineTransformer:
+    def __init__(self):
+        pass
 
-    def __len__(self):
-        return len(self.filenames)
-
-    def __getitem__(self, idx):
-        filename = Path(self.filenames[idx])
-
-        # text processing
-        with open(self.text_folder / filename, "r") as file:
-            text = file.read().strip()
-            encoded_text = self.text_to_label(text)
-            padded_text = self.pad_sequence(encoded_text, value=len(self.letters))
-
-        # image processing
-        image = Image.open(self.image_folder / filename.with_suffix(".jpg"))
-        image = PetrDataset.process_image(image)
-        input_length = torch.IntTensor([255])
-        # input_length =
-        return (
-            torch.from_numpy(image.astype(dtype='float32')),
-            torch.Tensor(padded_text),
-            input_length.squeeze(),
-            len(encoded_text),
-        )
-
-    def text_to_label(self, text):
-        return [self.letters.index(char) for char in text]
-
-    def pad_sequence(self, seq, value=0):
-        return seq + [value] * (self.max_len - len(seq))
-
-    @staticmethod
-    def process_image(img):
+    def __call__(self, img):
         w, h = img.size
         new_h = 128
         new_w = int(w * (new_h / h))
@@ -75,4 +40,44 @@ class PetrDataset(Dataset):
 
         img_array = img_array.reshape(3, 128, 1024)
 
-        return np.array(img_array)
+        return torch.from_numpy(np.array(img_array).astype(dtype="float32"))
+
+
+class PetrDataset(Dataset):
+
+    def __init__(self, filenames, image_folder, text_folder, letters, max_len=0, transformer=None):
+        self.filenames = filenames
+        self.image_folder = Path(image_folder)
+        self.text_folder = Path(text_folder)
+        self.max_len = max_len
+        self.letters = letters
+        self.transformer = transformer
+
+    def __len__(self):
+        return len(self.filenames)
+
+    def __getitem__(self, idx):
+        filename = Path(self.filenames[idx])
+
+        # text processing
+        with open(self.text_folder / filename, "r") as file:
+            text = file.read().strip()
+            encoded_text = self.text_to_label(text)
+            padded_text = self.pad_sequence(encoded_text, value=self.letters.index(" "))
+
+        # image processing
+        image = Image.open(self.image_folder / filename.with_suffix(".jpg"))
+        image = self.transformer(image).astype(dtype="float32")
+
+        return (
+            image,
+            torch.Tensor(padded_text),
+            255,
+            len(encoded_text),
+        )
+
+    def text_to_label(self, text):
+        return [self.letters.index(char) for char in text]
+
+    def pad_sequence(self, seq, value=0):
+        return seq + [value] * (self.max_len - len(seq))
