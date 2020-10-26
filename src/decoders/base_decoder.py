@@ -18,12 +18,13 @@ class BaseDecoder(ABC):
         """Return 2D-array (BATCH_SIZE, N_TIMESTEPS)"""
         pass
 
-    def decode(self, decoder_output: torch.Tensor, labels: torch.Tensor, label_lengths: torch.Tensor):
+    def decode(self, decoder_output: torch.Tensor, labels: torch.Tensor = None, label_lengths: torch.Tensor = None):
         decodes = []
         targets = []
         for i, args in enumerate(decoder_output):
             decode = []
-            targets.append(self.int_to_text(labels[i][:label_lengths[i]].tolist()))
+            if (labels and label_lengths):
+                targets.append(self.int_to_text(labels[i][:label_lengths[i]].tolist()))
             for j, index in enumerate(args):
                 if index != self.blank_id:
                     if self.collapse_repeated and j != 0 and index == args[j - 1]:

@@ -1,6 +1,8 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+__all__ = ["BaselineNetwork"]
+
 
 class BaselineNetwork(nn.Module):
 

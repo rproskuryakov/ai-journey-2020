@@ -4,12 +4,13 @@ from pathlib import Path
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from torch.optim import AdamW
+from torch.optim import Adam
 from torch.optim import lr_scheduler
 import torch.nn as nn
 import torch.utils.data
+import torchvision.transforms as tf
 
-from src.models.baseline_model import BaselineNetwork
+from src.models.resnet_model import ResNetNetwork
 from src.callbacks.early_stopping import EarlyStopping
 from src.callbacks.save_checkpoints import SaveCheckpoints
 from src.dataset import PetrDataset

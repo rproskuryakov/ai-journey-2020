@@ -67,7 +67,7 @@ class PetrDataset(Dataset):
 
         # image processing
         image = Image.open(self.image_folder / filename.with_suffix(".jpg"))
-        image = self.transformer(image).astype(dtype="float32")
+        image = self.transformer(image)
 
         return (
             image,

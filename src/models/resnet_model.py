@@ -3,12 +3,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models
 
+__all__ = ["ResNetNetwork"]
+
 
 class ResNetBackbone(nn.Module):
 
-    def __init__(self):
+    def __init__(self, resnet_state_dict=None):
         super(ResNetBackbone, self).__init__()
-        resnet18 = torchvision.models.resnet18(pretrained=True)
+        if resnet_state_dict:
+            resnet_18 = torchvision.models.resnet18(pretrained=False)
+            resnet_18.load_state_dict(resnet_state_dict)
+        else:
+            resnet18 = torchvision.models.resnet18(pretrained=True)
         layers_list = list(resnet18.children())
         self.conv_1 = layers_list[0]
         self.batch_norm_1 = layers_list[1]
@@ -26,9 +32,9 @@ class ResNetBackbone(nn.Module):
 
 class ResNetNetwork(nn.Module):
 
-    def __init__(self, n_letters, freeze_resnet=False):
+    def __init__(self, n_letters, freeze_resnet=False, resnet_state_dict=None):
         super(ResNetNetwork, self).__init__()
-        self.resnet_extractor = ResNetBackbone()
+        self.resnet_extractor = ResNetBackbone(resnet_state_dict=resnet_state_dict)
 
         # first conv-block out of 2 parallel
         self.y_conv_block = nn.Sequential(
