@@ -1,8 +1,11 @@
+import logging
 from abc import ABC
 from abc import abstractmethod
 from typing import List
 
 import torch
+
+logger = logging.getLogger(__name__)
 
 
 class BaseDecoder(ABC):
@@ -18,16 +21,14 @@ class BaseDecoder(ABC):
         """Return 2D-array (BATCH_SIZE, N_TIMESTEPS)"""
         pass
 
-    def decode(self, decoder_output: torch.Tensor, labels: torch.Tensor = None, label_lengths: torch.Tensor = None):
+    def decode(self, decoder_output: torch.Tensor, labels: torch.Tensor, label_lengths: torch.Tensor):
         decodes = []
         targets = []
         for i, args in enumerate(decoder_output):
             decode = []
-            if (labels and label_lengths):
-                targets.append(self.int_to_text(labels[i][:label_lengths[i]].tolist()))
-
+            targets.append(self.int_to_text(labels[i][:label_lengths[i]].tolist()))
             for j, index in enumerate(args):
-                print(index)
+                # print(index)
                 if index != self.blank_id:
                     if self.collapse_repeated and j != 0 and index == args[j - 1]:
                         continue
@@ -41,7 +42,6 @@ class BaseDecoder(ABC):
             try:
                 decoded.append(self.letters[int(i)])
             except IndexError:
-                print(indexes)
-                print(i)
+                logger.warning(f"Wrong char index: {i}")
         return "".join(decoded)
 
