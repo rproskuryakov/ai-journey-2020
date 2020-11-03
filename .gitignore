@@ -132,3 +132,5 @@ dmypy.json
 *.zip
 .idea/
 log.txt
+*.pt
+*.pth
