@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.utils.data
 import torchvision.transforms as tf
 
+from src.models import ResNet18AttentionNetwork
 from src.models.resnet_model import ResNet18Network
 from src.callbacks.early_stopping import EarlyStopping
 from src.callbacks.save_checkpoints import SaveCheckpoints
@@ -33,8 +34,8 @@ if __name__ == "__main__":
     # Launch parameters
     INPUT_DIR = Path("data/")
     OUTPUT_DIR = Path("models/")
-    LEARNING_RATE = 0.01
-    N_EPOCHS = 1
+    LEARNING_RATE = 0.001
+    N_EPOCHS = 200
     BATCH_SIZE = 10
 
     if torch.cuda.is_available():
@@ -43,7 +44,7 @@ if __name__ == "__main__":
         device = "cpu"
 
     logger.info(f"Device: {device}")
-    dataframe = pd.read_csv("data/interim/texts.csv")[:50]
+    dataframe = pd.read_csv("data/interim/texts.csv")
     filenames = dataframe["filename"].to_list()
     train_filenames, test_filenames = train_test_split(filenames, test_size=0.2, shuffle=True, random_state=2020)
     MAX_LEN = dataframe["text"].str.len().max()
@@ -76,11 +77,11 @@ if __name__ == "__main__":
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE)
 
-    network = ResNet18Network(n_letters=len(letters))
+    network = ResNet18AttentionNetwork(n_letters=len(letters))
 
-    optimizer = Adam(network.parameters(), lr=LEARNING_RATE)
+    lm_optimizer = Adam(network.parameters(), lr=LEARNING_RATE)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
+        lm_optimizer,
         mode="min",
         patience=5,
         factor=0.7
@@ -90,14 +91,14 @@ if __name__ == "__main__":
         network=network,
         train_dataloader=train_dataloader,
         val_dataloader=val_dataloader,
-        loss=nn.CTCLoss(blank=0),
-        optimizer=optimizer,
+        loss=nn.CTCLoss(blank=0, reduction="mean"),
+        optimizer=lm_optimizer,
         device=device,
         n_epochs=N_EPOCHS,
         scheduler=scheduler,
         callbacks=[
             EarlyStopping(patience=20, min_delta=1e-5),
-            SaveCheckpoints(network, only_best=True, folder=OUTPUT_DIR / 'checkpoint_torch/v2_resnet/'),
+            SaveCheckpoints(network, only_best=True, folder=OUTPUT_DIR / 'checkpoint_torch/v3_resnet_attention/'),
         ],
         metrics=[
             WordErrorRate(),
