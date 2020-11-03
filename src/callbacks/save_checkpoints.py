@@ -26,9 +26,9 @@ class SaveCheckpoints(BaseCallback):
         self.is_better = init_is_better(mode, min_delta, percentage)
 
     def _save_checkpoint(self, name: Union[str, Path]):
+        Path(self.folder).mkdir(parents=True, exist_ok=True)
         path = Path(self.folder) / name
         torch.save(self.model.cpu().state_dict(), path)
-        self.model.cuda()
 
     def __call__(self, n_epoch: int, metric: Optional[Union[float, torch.Tensor]] = None) -> None:
         if not self.only_best:
