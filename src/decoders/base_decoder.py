@@ -25,7 +25,9 @@ class BaseDecoder(ABC):
             decode = []
             if (labels and label_lengths):
                 targets.append(self.int_to_text(labels[i][:label_lengths[i]].tolist()))
+
             for j, index in enumerate(args):
+                print(index)
                 if index != self.blank_id:
                     if self.collapse_repeated and j != 0 and index == args[j - 1]:
                         continue

@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.utils.data
 import torchvision.transforms as tf
 
-from src.models.resnet_model import ResNetNetwork
+from src.models.resnet_model import ResNet18Network
 from src.callbacks.early_stopping import EarlyStopping
 from src.callbacks.save_checkpoints import SaveCheckpoints
 from src.dataset import PetrDataset
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE)
 
-    network = ResNetNetwork(n_letters=len(letters))
+    network = ResNet18Network(n_letters=len(letters))
 
     optimizer = Adam(network.parameters(), lr=LEARNING_RATE)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(

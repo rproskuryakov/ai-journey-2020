@@ -1,4 +1,4 @@
 {
-   "image": "odsai/python-gpu",
+   "image": "rproskuryakov/digital-petr:1.0.0",
    "entry_point": "python3 evaluate.py"
 }

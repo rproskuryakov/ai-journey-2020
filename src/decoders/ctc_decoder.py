@@ -27,4 +27,27 @@ class CTCDecoder(BaseDecoder):
         out_reshape = output.permute(1, 0, 2)
         # OUT_RESHAPE SHAPE: (N, T, C)
         beam_results, beam_scores, timesteps, out_lens = self.decoder.decode(out_reshape)
+        condition = (beam_results < len(self.letters)) & (beam_results >= 0)
+        # beam_results = torch.where(condition, beam_results, torch.zeros(beam_results.size(), dtype=torch.int32))
         return beam_results[:, 0, :].squeeze(dim=1), out_lens[:, 0]
+
+    def decode(self, decoder_output: torch.Tensor, labels: torch.Tensor = None, label_lengths: torch.Tensor = None,
+               ctc_lens: torch.Tensor = None):
+        decodes = []
+        targets = []
+        for i, args in enumerate(decoder_output):
+            decode = []
+            if (labels and label_lengths):
+                targets.append(self.int_to_text(labels[i][:label_lengths[i]].tolist()))
+
+            submatrix = args
+            if ctc_lens is not None:
+                submatrix = args[:ctc_lens[i]]
+
+            for j, index in enumerate(submatrix):
+                if index != self.blank_id:
+                    if self.collapse_repeated and j != 0 and index == args[j - 1]:
+                        continue
+                    decode.append(index.item())
+            decodes.append(self.int_to_text(decode))
+        return decodes, targets

@@ -5,6 +5,7 @@ This repo contains solution to [AI Journey 2020](https://github.com/sberbank-ai/
 1. Transfer learning (ResNet-encoder, BERT-decoder)
 2. Attention, different modifications of baseline
 3. Attributes of images - is there a symbol (multilabel classification) => leveraging knowledge graph for decoding
+4. Use DropConnect for RNN-part and NT-ASGD as optimizer for that as regularizations (AWD-LSTM for language modelling).
 
 ## Attributes for knowledge graph
 * Easy to mix up letters «ѣ» и «е»
