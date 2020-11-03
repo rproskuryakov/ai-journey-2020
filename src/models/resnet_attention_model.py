@@ -50,7 +50,7 @@ class ResNet18AttentionNetwork(nn.Module):
         )
 
         # second gru-block out of 2 parallel
-        self.self_attention_1_z = nn.MultiheadAttention(64, 3)
+        self.self_attention_1_z = nn.MultiheadAttention(64, 4)
         self.blstm_1_z = WeightDropGRU(64, 64, bidirectional=True, batch_first=True, weight_dropout=0.2)
         self.self_attention_2_z = nn.MultiheadAttention(128, 4)
         self.blstm_2_z = WeightDropGRU(128, 64, bidirectional=True, batch_first=True, weight_dropout=0.2)
