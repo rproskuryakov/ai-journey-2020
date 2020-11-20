@@ -1,25 +1,22 @@
-from functools import reduce
 import logging
+from functools import reduce
 from pathlib import Path
 
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from torch.optim import Adam
-from torch.optim import lr_scheduler
 import torch.nn as nn
 import torch.utils.data
 import torchvision.transforms as tf
+from sklearn.model_selection import train_test_split
+from torch.optim import Adam
 
-from src.models import ResNet18AttentionNetwork
-from src.models.resnet_model import ResNet18Network
 from src.callbacks.early_stopping import EarlyStopping
 from src.callbacks.save_checkpoints import SaveCheckpoints
 from src.dataset import PetrDataset
-from src.dataset import BaselineTransformer
 from src.decoders.greedy_decoder import GreedyDecoder
 from src.metrics import CharacterErrorRate
 from src.metrics import StringAccuracy
 from src.metrics import WordErrorRate
+from src.models import ResNet18AttentionNetwork
 from src.trainer import TaskTrainer
 
 logging.basicConfig(
@@ -45,7 +42,7 @@ if __name__ == "__main__":
 
     logger.info(f"Device: {device}")
     dataframe = pd.read_csv("data/interim/texts.csv")
-    filenames = dataframe["filename"].to_list()
+    filenames = dataframe["filename"].to_list()[:40]
     train_filenames, test_filenames = train_test_split(filenames, test_size=0.2, shuffle=True, random_state=2020)
     MAX_LEN = dataframe["text"].str.len().max()
     letters = ["_"] + list(reduce(lambda x, y: set(x) | set(y), dataframe["text"].to_list(), set()))
@@ -107,6 +104,6 @@ if __name__ == "__main__":
         ],
         letters=letters,
         decoder=GreedyDecoder(letters, blank_id=0),
-        clipping_value=10
+        clipping_value=0.5,
     )
     trainer.fit()
