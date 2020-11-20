@@ -7,11 +7,6 @@ This repo contains solution to [AI Journey 2020](https://github.com/sberbank-ai/
 3. Attributes of images - is there a symbol (multilabel classification) => leveraging knowledge graph for decoding
 4. Use DropConnect for RNN-part and NT-ASGD as optimizer for that as regularizations (AWD-LSTM for language modelling).
 
-## Attributes for knowledge graph
-* Easy to mix up letters «ѣ» и «е»
-* "Ї" stand before vowels and "й" (including "е", "я", "Їo"). Petr had it in "иЇ" (right "Їи")
-* Reform: «ӡ» -> «Ѕ» -> «ӡ», "I" ("Ї" before) for [и]
-
 ## Resources
 
 [Sequence modeling with CTC | Distill](https://distill.pub/2017/ctc/)
@@ -31,3 +26,5 @@ This repo contains solution to [AI Journey 2020](https://github.com/sberbank-ai/
 [Word Beam Search: A Connectionist Temporal Classification Decoding Algorithm](https://repositum.tuwien.at/retrieve/1835)
 
 [Trainable Spectrally Initializable Matrix Transformations in Convolutional Neural Networks | Arxiv 2019](https://arxiv.org/abs/1911.05045)
+
+[Russian ULM trained with fast.ai](https://github.com/noise-field/Russian-ULMFit)
