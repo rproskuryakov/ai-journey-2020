@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
-from torchnlp.nn import WeightDropGRU
 
 __all__ = ["ResNet18AttentionNetwork"]
+
 
 class _ResNet18Backbone(nn.Module):
     """Return (BATCH_SIZE, 64, 32, 256)"""
@@ -39,16 +39,16 @@ class ResNet18AttentionNetwork(nn.Module):
         self.resnet_extractor = _ResNet18Backbone(pretrained_resnet=pretrained_resnet)
         # first gru block out of 2 parallel
         self.self_attention_1_y = nn.MultiheadAttention(512, 4)
-        self.blstm_1_y = nn.GRU(512, 128, bidirectional=True, batch_first=True)#, weight_dropout=0.2)
+        self.blstm_1_y = nn.GRU(512, 128, bidirectional=True, batch_first=True)
         self.self_attention_2_y = nn.MultiheadAttention(256, 4)
-        self.blstm_2_y = nn.GRU(256, 128, bidirectional=True, batch_first=True)#, weight_dropout=0.2)
+        self.blstm_2_y = nn.GRU(256, 128, bidirectional=True, batch_first=True)
 
         # second gru-block out of 2 parallel
         self.max_pool = nn.MaxPool2d(kernel_size=(2, 2))
         self.self_attention_1_z = nn.MultiheadAttention(128, 4)
-        self.blstm_1_z = nn.GRU(128, 64, bidirectional=True, batch_first=True)#, weight_dropout=0.2)
+        self.blstm_1_z = nn.GRU(128, 64, bidirectional=True, batch_first=True)
         self.self_attention_2_z = nn.MultiheadAttention(128, 4)
-        self.blstm_2_z = nn.GRU(128, 64, bidirectional=True, batch_first=True)#, weight_dropout=0.2)
+        self.blstm_2_z = nn.GRU(128, 64, bidirectional=True, batch_first=True)
 
         self.dense = nn.Linear(384, n_letters)
 
