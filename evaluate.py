@@ -1,16 +1,12 @@
 import os
 import pathlib
 
-from PIL import Image
-import torch
 import torch.utils.data
-import torch.nn.functional as F
 import torchvision.transforms as tf
+from PIL import Image
 
-from src.models.resnet_model import ResNet50Network
-from src.models.baseline_model import BaselineNetwork
 from src.decoders import CTCDecoder
-
+from src.models.resnet_model import ResNet50Network
 
 if __name__ == "__main__":
     MODEL_PATH = pathlib.Path("models/checkpoint_torch/v3_resnet_50/best_model_epoch_58.pth")
